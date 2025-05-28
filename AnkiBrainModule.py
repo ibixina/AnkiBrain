@@ -13,7 +13,7 @@ from dotenv import set_key, load_dotenv
 from ChatAIModuleAdapter import ChatAIModuleAdapter
 from ExplainTalkButtons import ExplainTalkButtons
 from InterprocessCommand import InterprocessCommand as IC
-from OpenAIAPIKeyDialog import OpenAIAPIKeyDialog
+from OpenAIAPIKeyDialog import OpenAIAPIKeyDialog, GeminiAPIKeyDialog  
 from PostUpdateDialog import PostUpdateDialog
 from SidePanel import SidePanel
 from UserModeDialog import show_user_mode_dialog
@@ -102,6 +102,11 @@ class AnkiBrain:
         self.openai_api_key_dialog = OpenAIAPIKeyDialog()
         self.openai_api_key_dialog.hide()
 
+
+        self.gemini_api_key_dialog = GeminiAPIKeyDialog()
+        self.gemini_api_key_dialog.hide()
+
+
         # Should go last because this object takes self and can call items.
         # Therefore, risk of things not completing setup.
         from ReactBridge import ReactBridge
@@ -121,6 +126,7 @@ class AnkiBrain:
 
         # Set up api key dialog.
         self.openai_api_key_dialog.on_key_save(self.handle_openai_api_key_save)
+        self.gemini_api_key_dialog.on_key_save(self.handle_openai_api_key_save)
 
         # Hook for injecting custom javascript into Anki cards.
         addHook("prepareQA", handle_card_will_show)
@@ -223,6 +229,12 @@ class AnkiBrain:
         self.openai_api_key_dialog.hide()
         set_key(dotenv_path, 'OPENAI_API_KEY', key)
         os.environ['OPENAI_API_KEY'] = key
+        self.restart_async_members_from_sync()
+
+    def handle_gemini_api_key_save(self, key):
+        self.gemini_api_key_dialog.hide()
+        set_key(dotenv_path, "GOOGLE_API_KEY", key)
+        os.environ["GOOGLE_API_KEY"] = key
         self.restart_async_members_from_sync()
 
     def _handle_process_signal(self, signal, frame):
